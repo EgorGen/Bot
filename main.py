@@ -48,12 +48,15 @@ async def take_doc(message: Message, state: FSMContext):
 
 @form_router.message(F.text == 'Показать список групп')
 async def report(message: Message, state: FSMContext):
-   if data is None:
-      await message.answer('Вы не отправили документ для обработки!')
-   else:
-      grup = data['Группа'].unique()
-      grup_str = ', '.join(grup)
-      await message.answer(f'В  базе данных храниться информации таких групп как: {grup_str}')
+   try:
+      if data is None:
+         await message.answer('Вы не отправили документ для обработки!')
+      else:
+         grup = data['Группа'].unique()
+         grup_str = ', '.join(grup)
+         await message.answer(f'В  базе данных храниться информации таких групп как: {grup_str}')
+   except:
+      await message.answer(f"Загрузите другой файл, данный файл не подлежит обрабоке.")
 
 @form_router.message(F.text == 'Выбрать группу')
 async def report(message: Message, state: FSMContext) -> None:
@@ -62,16 +65,19 @@ async def report(message: Message, state: FSMContext) -> None:
 
 @form_router.message(Form.name)
 async def process_name(message: Message, state: FSMContext) -> None:
-   if data is None:
-      await message.answer('Вы не отправили документ для обработки!')
-   else:
-      await state.update_data(name=message.text)
-      await message.answer(f"Номер вашей группы:  {html.quote(message.text)}")
-      skore = data['Группа'].str.contains(str(message.text)).sum()
-      if skore == 0:
-         await message.answer(f'К сожалению по группе с таким номером нет данных.', reply_markup=kb.main)
+   try:
+      if data is None:
+         await message.answer('Вы не отправили документ для обработки!')
       else:
-         await message.answer(f'Если хотите получить отчет по группе: {html.quote(message.text)}. Нажмите кнопку отчет', reply_markup=kb.report1)
+         await state.update_data(name=message.text)
+         await message.answer(f"Номер вашей группы:  {html.quote(message.text)}")
+         skore = data['Группа'].str.contains(str(message.text)).sum()
+         if skore == 0:
+            await message.answer(f'К сожалению по группе с таким номером нет данных.', reply_markup=kb.main)
+         else:
+            await message.answer(f'Если хотите получить отчет по группе: {html.quote(message.text)}. Нажмите кнопку отчет', reply_markup=kb.report1)
+   except:
+      await message.answer(f"Загрузите другой файл, данный файл не подлежит обрабоке.")
 
 @dp.callback_query(F.data == 'otchet')
 async def cbquantity(callback: CallbackQuery, state: FSMContext):
